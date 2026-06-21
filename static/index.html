@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能车牌识别系统 | 前后端分离版</title>
+    <!-- 引入Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入图标库 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* 全局科技感样式 */
+        :root {
+            --tech-primary: #0d6efd;
+            --tech-dark: #0a1929;
+            --tech-light: #e6f7ff;
+            --tech-gradient: linear-gradient(135deg, #0d6efd 0%, #6417e7 100%);
+            --tech-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+            --tech-border: 1px solid rgba(13, 110, 253, 0.2);
+        }
+
+        body {
+            background-color: var(--tech-dark);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(13, 110, 253, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(100, 23, 231, 0.1) 0%, transparent 20%);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1400px;
+            padding: 30px 0;
+        }
+
+        /* 标题样式 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title-section h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: var(--tech-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .title-section p {
+            color: #adb5bd;
+            font-size: 1.1rem;
+        }
+
+        .title-section::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--tech-gradient);
+            border-radius: 3px;
+        }
+
+        /* 卡片样式（科技感卡片） */
+        .tech-card {
+            background: rgba(10, 25, 41, 0.8);
+            border: var(--tech-border);
+            border-radius: 12px;
+            box-shadow: var(--tech-shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(13, 110, 253, 0.5);
+        }
+
+        .tech-card .card-title {
+            color: var(--tech-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tech-card .card-title i {
+            font-size: 1.2rem;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            padding: 30px;
+        }
+
+        /* 文件输入样式 */
+        .custom-file-input {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .custom-file-input input[type="file"] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-height: 100%;
+            min-width: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-label {
+            display: block;
+            padding: 15px;
+            background: rgba(13, 110, 253, 0.1);
+            border: 2px dashed var(--tech-primary);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .file-label:hover {
+            background: rgba(13, 110, 253, 0.2);
+        }
+
+        .file-label i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--tech-primary);
+        }
+
+        /* 按钮样式 */
+        .tech-btn {
+            background: var(--tech-gradient);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .tech-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(13, 110, 253, 0.7);
+            color: #fff;
+        }
+
+        .tech-btn:hover::before {
+            left: 100%;
+        }
+
+        /* 耗时显示样式 */
+        .time-display {
+            margin: 25px 0;
+            padding: 15px;
+            background: rgba(13, 110, 253, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--tech-primary);
+        }
+
+        .time-display h6 {
+            color: #adb5bd;
+            margin-bottom: 5px;
+        }
+
+        .time-display #detect-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ff9d;
+        }
+
+        /* 结果区域样式 */
+        .result-area {
+            min-height: 220px;
+            background: rgba(10, 25, 41, 0.6);
+            border: var(--tech-border);
+            border-radius: 8px;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .result-item {
+            background: rgba(13, 110, 253, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--tech-primary);
+        }
+
+        .result-item strong {
+            color: var(--tech-primary);
+        }
+
+        .color-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .color-tag.green {
+            background: rgba(0, 255, 157, 0.2);
+            color: #00ff9d;
+        }
+
+        .color-tag.blue {
+            background: rgba(13, 110, 253, 0.2);
+            color: #0d6efd;
+        }
+
+        .color-tag.yellow {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        /* 图片预览区域 */
+        .preview-area {
+            padding: 30px;
+        }
+
+        .preview-container {
+            width: 100%;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 25, 41, 0.6);
+            border: var(--tech-border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-container::before {
+            content: '📷 图片预览区域';
+            position: absolute;
+            color: #adb5bd;
+            font-size: 1.2rem;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            z-index: 1;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--tech-primary);
+            font-size: 1.1rem;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(13, 110, 253, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--tech-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .title-section h1 {
+                font-size: 2rem;
+            }
+
+            .preview-container {
+                height: 300px;
+            }
+
+            .tech-card {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <div class="title-section">
+            <h1>智能车牌识别系统</h1>
+            <p>基于AI的中文车牌快速识别 | 精准 · 高效 · 智能</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- 左侧上传区 -->
+            <div class="col-md-4">
+                <div class="tech-card upload-area">
+                    <h5 class="card-title">
+                        <i class="bi bi-cloud-upload"></i> 上传图片
+                    </h5>
+
+                    <!-- 自定义文件输入 -->
+                    <div class="custom-file-input">
+                        <label class="file-label" for="file-input">
+                            <i class="bi bi-image"></i><br>
+                            点击选择或拖拽图片到此处<br>
+                            <small>支持格式：JPG/PNG/BMP</small>
+                        </label>
+                        <input type="file" id="file-input" accept="image/*">
+                    </div>
+
+                    <!-- 识别按钮 + 加载动画 -->
+                    <div class="d-flex align-items-center">
+                        <button id="detect-btn" class="tech-btn w-100">
+                            <i class="bi bi-scan"></i> 开始识别
+                        </button>
+                        <div class="loading ms-3" id="loading">
+                            <div class="loading-spinner"></div>
+                            识别中...
+                        </div>
+                    </div>
+
+                    <!-- 识别耗时 -->
+                    <div class="time-display">
+                        <h6>识别耗时</h6>
+                        <span id="detect-time">0.00</span> <span class="text-secondary">秒</span>
+                    </div>
+
+                    <!-- 识别结果 -->
+                    <div>
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-clipboard-data"></i> 识别结果
+                        </h5>
+                        <div id="result-area" class="result-area">
+                            <div class="text-secondary text-center mt-5">
+                                <i class="bi bi-info-circle"></i> 请上传图片并点击识别
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧图片预览 -->
+            <div class="col-md-8">
+                <div class="tech-card preview-area">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-eye"></i> 图片预览
+                    </h5>
+                    <div class="preview-container">
+                        <img id="image-preview" src="" alt="预览图片">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ========== 配置项：后端API地址（前后端分离核心） ==========
+        const API_BASE_URL = "http://127.0.0.1:8000/api";
+
+        // 获取DOM元素
+        const fileInput = document.getElementById('file-input');
+        const detectBtn = document.getElementById('detect-btn');
+        const imagePreview = document.getElementById('image-preview');
+        const detectTime = document.getElementById('detect-time');
+        const resultArea = document.getElementById('result-area');
+        const loading = document.getElementById('loading');
+
+        // 预览上传的图片
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    // 更新结果区域提示
+                    resultArea.innerHTML = `
+                        <div class="text-secondary text-center mt-5">
+                            <i class="bi bi-hourglass-split"></i> 等待识别...
+                        </div>
+                    `;
+                    detectTime.textContent = "0.00";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 点击识别按钮
+        detectBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                resultArea.innerHTML = `
+                    <div class="text-danger text-center mt-5">
+                        <i class="bi bi-exclamation-triangle"></i> 请先选择图片！
+                    </div>
+                `;
+                return;
+            }
+
+            // 显示加载动画
+            detectBtn.disabled = true;
+            loading.style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // ========== 调用后端API（前后端分离核心） ==========
+                const response = await fetch(`${API_BASE_URL}/detect_plate`, {
+                    method: 'POST',
+                    body: formData,
+                    // 跨域请求头（可选，后端已配置CORS）
+                    mode: 'cors'
+                });
+
+                // 检查响应是否合法
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误：${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // 隐藏加载动画
+                detectBtn.disabled = false;
+                loading.style.display = 'none';
+
+                // 处理API返回结果
+                if (data.success) {
+                    // 显示耗时
+                    detectTime.textContent = data.detect_time;
+                    // 显示识别结果
+                    if (data.results.length === 0) {
+                        resultArea.innerHTML = `
+                            <div class="text-warning text-center mt-5">
+                                <i class="bi bi-search"></i> 未检测到车牌
+                            </div>
+                        `;
+                    } else {
+                        let html = "";
+                        data.results.forEach((item, idx) => {
+                            // 根据车牌颜色匹配样式
+                            let colorClass = '';
+                            if (item.color.includes('绿')) colorClass = 'green';
+                            else if (item.color.includes('蓝')) colorClass = 'blue';
+                            else if (item.color.includes('黄')) colorClass = 'yellow';
+
+                            html += `
+                            <div class="result-item">
+                                <p><strong>【${idx+1}】车牌：</strong>${item.plate_number}</p>
+                                <p><strong>置信度：</strong>${item.confidence}</p>
+                                <p><strong>颜色：</strong>
+                                    <span class="color-tag ${colorClass}">${item.color}</span>
+                                </p>
+                            </div>
+                            `;
+                        });
+                        resultArea.innerHTML = html;
+                    }
+                } else {
+                    // 显示后端返回的错误信息
+                    resultArea.innerHTML = `
+                        <div class="text-danger text-center mt-5">
+                            <i class="bi bi-x-circle"></i> 识别失败：${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                // 隐藏加载动画
+                detectBtn.disabled = false;
+                loading.style.display = 'none';
+
+                // 分类处理前端错误
+                let errorMsg = '';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = `无法连接到后端服务（${API_BASE_URL}），请检查：<br>
+                                1. 后端服务是否已启动<br>
+                                2. API地址是否正确<br>
+                                3. 防火墙是否拦截端口`;
+                } else if (error.message.includes('JSON')) {
+                    errorMsg = '后端返回数据格式错误，请检查后端日志';
+                } else {
+                    errorMsg = error.message;
+                }
+
+                resultArea.innerHTML = `
+                    <div class="text-danger text-center mt-5">
+                        <i class="bi bi-wifi-off"></i> 操作失败：<br>${errorMsg}
+                    </div>
+                `;
+                console.error('前端请求错误：', error);
+            }
+        });
+
+        // 页面加载时检查后端服务是否可用
+        window.onload = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (!response.ok) throw new Error("服务不可用");
+                const data = await response.json();
+                console.log("后端服务状态：", data);
+            } catch (e) {
+                console.warn("后端服务未启动或不可达：", e.message);
+                resultArea.innerHTML = `
+                    <div class="text-warning text-center mt-5">
+                        <i class="bi bi-exclamation-circle"></i> 提示：未连接到后端服务<br>
+                        请先启动后端API服务（http://127.0.0.1:8000）
+                    </div>
+                `;
+            }
+        };
+    </script>
+</body>
+</html>
